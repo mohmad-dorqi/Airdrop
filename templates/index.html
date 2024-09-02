@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h2>Welcome, <span id="username"></span>!</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text"><strong>User ID:</strong> <span id="user-id"></span></p>
+                <p class="card-text"><strong>Coins:</strong> <span id="coins"></span></p>
+                <p class="card-text"><strong>Has Clicker Bot:</strong> <span id="clicker-bot"></span></p>
+                <p class="card-text"><strong>Multitap Level:</strong> <span id="multitap-level"></span></p>
+                <p class="card-text"><strong>Recharge Level:</strong> <span id="recharge-level"></span></p>
+                <p class="card-text"><strong>Referral Link:</strong> <a id="referral-link" href="#"></a></p>
+                <p class="card-text"><strong>Referred Users Count:</strong> <span id="referred-count"></span></p>
+                <p class="card-text"><strong>Wallet Address:</strong> <span id="wallet-address"></span></p>
+                <p class="card-text"><strong>Game 2048 Score:</strong> <span id="game-2048-score"></span></p>
+                <p class="card-text"><strong>Total Contributed to Referrer:</strong> <span id="total-contributed"></span></p>
+                <hr>
+                <h3>Referred Users:</h3>
+                <ul id="referred-users"></ul>
+                <hr>
+                <h3>Advertisements:</h3>
+                <ul id="ads"></ul>
+                <hr>
+                <h3>Top Users by Coins:</h3>
+                <ul id="top-coins">ممممممممم</ul>
+                <hr>
+                <h3>Top Users by Referrals:</h3>
+                <ul id="top-referrals"></ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+
+            if (!userId) {
+                alert('User ID not found in URL parameters.');
+                return;
+            }
+
+            fetch(`/api/user/${userId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('User not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('username').textContent = data.username;
+                    document.getElementById('user-id').textContent = data.id;
+                    document.getElementById('coins').textContent = data.coins;
+                    document.getElementById('clicker-bot').textContent = data.has_clicker_bot ? 'Yes' : 'No';
+                    document.getElementById('multitap-level').textContent = data.multitap_level;
+                    document.getElementById('recharge-level').textContent = data.recharge_level;
+                    document.getElementById('referral-link').textContent = data.referral_link;
+                    document.getElementById('referral-link').href = data.referral_link;
+                    document.getElementById('referred-count').textContent = data.referred_count;
+                    document.getElementById('wallet-address').textContent = data.wallet_address || 'Not set';
+                    document.getElementById('game-2048-score').textContent = data.game_2048_score;
+                    document.getElementById('total-contributed').textContent = data.total_contributed_to_referrer;
+
+                    const referredUsersList = document.getElementById('referred-users');
+                    data.referred_users.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `${user.username} - ${user.coins} coins`;
+                        referredUsersList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+
+            fetch('/api/ads')
+                .then(response => response.json())
+                .then(data => {
+                    const adsList = document.getElementById('ads');
+                    data.forEach(ad => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = ad.link;
+                        a.textContent = ad.text;
+                        li.appendChild(a);
+                        adsList.appendChild(li);
+                    });
+                });
+
+            fetch('/api/top-coins')
+                .then(response => response.json())
+                .then(data => {
+                    const topCoinsList = document.getElementById('top-coins');
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `${user.username} - ${user.coins} coins`;
+                        topCoinsList.appendChild(li);
+                    });
+                });
+
+            fetch('/api/top-referrals')
+                .then(response => response.json())
+                .then(data => {
+                    const topReferralsList = document.getElementById('top-referrals');
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `${user.username} - ${user.referred_count} referrals`;
+                        topReferralsList.appendChild(li);
+                    });
+                });
+        });
+
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
